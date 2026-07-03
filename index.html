@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Bitácora · Composición Corporal</title>
+<meta name="theme-color" content="#15131A" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Bitácora" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  :root{
+    --bg:#15131A; --surface:#1B1820; --border:#221F29; --border2:#2A2732;
+    --text:#F7F3EE; --muted:#9C93A8; --muted2:#6B6478;
+    --pink:#E63469; --gold:#F2A93B; --purple:#9C7BD6; --green:#6FCF97;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;background:var(--bg);font-family:'Work Sans',sans-serif;color:var(--text);padding-bottom:24px;}
+  h1,h2,h3{font-family:'Bebas Neue',sans-serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button,input{font-family:inherit;}
+  ::-webkit-scrollbar{height:6px;}
+  ::-webkit-scrollbar-thumb{background:#3A3542;border-radius:3px;}
+
+  .header{padding:28px 20px 16px;border-bottom:1px solid var(--border);}
+  .eyebrow{margin:0;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--pink);text-transform:uppercase;font-weight:600;}
+  .title{font-size:38px;letter-spacing:.02em;line-height:1;margin:2px 0 14px;}
+  .progress-row{display:flex;align-items:center;gap:10px;}
+  .progress-track{flex:1;height:6px;background:#221F29;border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#7A3F63,#E63469,#F2A93B);transition:width .3s ease;}
+  .progress-pct{font-size:13px;color:var(--muted);min-width:40px;text-align:right;}
+
+  .mainnav{display:flex;gap:8px;padding:16px 20px 0;}
+  .mainnav button{flex:1;padding:10px 0;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-size:12px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+  .mainnav button.active{border-color:var(--pink);background:#241E29;color:var(--text);}
+
+  .daytabs{display:flex;gap:8px;padding:16px 20px;overflow-x:auto;}
+  .daytab{flex-shrink:0;width:56px;height:64px;border-radius:12px;border:1px solid var(--border);background:#1B1820;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+  .daytab.active{border:2px solid var(--pink);background:#241E29;}
+  .daytab .letter{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);}
+  .daytab.active .letter{color:var(--text);}
+  .daytab .bar{width:24px;height:3px;border-radius:2px;background:var(--border2);overflow:hidden;}
+  .daytab .bar-fill{height:100%;background:var(--pink);}
+  .daytab .bar-fill.full{background:var(--gold);}
+
+  .content{padding:4px 20px 40px;max-width:640px;margin:0 auto;}
+  .daymeta .eyebrow2{margin:0;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;}
+  .daymeta h2{font-size:26px;margin:2px 0 0;}
+  .daymeta .sub{margin:2px 0 0;font-size:13px;color:var(--muted);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:12px 0;}
+  .ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-radius:5px;padding:2px 6px;margin-bottom:6px;}
+  .badge.compuesto{color:var(--pink);border:1px solid var(--pink);}
+  .badge.aislado{color:#8B8FA8;border:1px solid #8B8FA8;}
+  .badge.core{color:var(--gold);border:1px solid var(--gold);}
+  .ex-name{margin:0;font-weight:600;font-size:15px;}
+  .ex-reps{margin:2px 0 0;color:var(--muted2);font-size:12px;}
+  .kg-input{width:52px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;text-align:center;padding:6px 4px;}
+  .note{margin:0 0 10px;font-size:11.5px;color:var(--gold);font-style:italic;}
+  .sets{display:flex;gap:8px;flex-wrap:wrap;}
+  .setbtn{width:54px;height:54px;border-radius:50%;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .12s ease;background:transparent;}
+  .setbtn:active{transform:scale(.92);}
+  .setbtn .n{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;}
+  .setbtn .r{font-size:8px;font-weight:600;}
+
+  .cardio-btn{width:100%;border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin:4px 0 24px;background:var(--surface);border:1px solid var(--border);text-align:left;}
+  .cardio-btn.done{background:#2A2118;border-color:var(--gold);}
+  .cardio-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);}
+  .cardio-desc{margin:2px 0 0;color:var(--text);font-weight:600;font-size:14px;}
+  .cardio-min{margin:0;color:var(--muted2);font-size:12px;font-family:'IBM Plex Mono',monospace;}
+  .cardio-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--gold);flex-shrink:0;}
+  .cardio-dot.done{background:var(--gold);}
+
+  .legend{margin-bottom:24px;}
+  .legend .lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+  .legend-items{display:flex;gap:10px;flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+  .dot{width:12px;height:12px;border-radius:50%;}
+
+  .reset-link{background:none;border:none;color:var(--muted2);font-size:12px;cursor:pointer;text-decoration:underline;}
+  .reset-confirm{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;}
+  .btn-danger{background:var(--pink);border:none;color:#fff;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;}
+  .btn-ghost{background:none;border:1px solid var(--border2);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;}
+  .center{text-align:center;}
+
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:24px;}
+  .form-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;}
+  .date-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:10px 12px;margin-bottom:14px;}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+  .field input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:8px 10px;}
+  .save-btn{width:100%;margin-top:16px;background:var(--pink);border:none;border-radius:10px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.05em;text-transform:uppercase;padding:12px 0;cursor:pointer;font-weight:600;}
+
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:24px;}
+  .chart-card h3{font-size:20px;margin:0 0 14px;letter-spacing:.02em;}
+  .chart-empty{color:var(--muted2);font-size:13px;text-align:center;padding:30px 0;}
+  .chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:var(--muted);}
+  .chart-legend .dot{width:9px;height:9px;}
+
+  .hist-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;}
+  .hist-empty{color:var(--muted2);font-size:13px;text-align:center;padding:24px 0;}
+  .hist-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
+  .hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .hist-date{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.02em;}
+  .hist-del{background:none;border:none;color:var(--muted2);font-size:11px;cursor:pointer;text-decoration:underline;}
+  .hist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .hist-field p{margin:0;}
+  .hist-field .flbl{font-size:10px;color:var(--muted2);text-transform:uppercase;}
+  .hist-field .fval{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--text);margin-top:1px;}
+  .hist-field .funit{font-size:10px;color:var(--muted2);}
+  .hist-field .fdelta{font-size:10.5px;margin-top:0;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------- DATA ---------- */
+const WEEK = [
+  {key:"lun",letter:"L",dia:"Lunes",grupo:"Glúteo y Femoral",sub:"Cadena posterior",exercises:[
+    {id:"l1",name:"Hip thrust con barra",tipo:"Compuesto",reps:"8–10",rirs:[3,2,1,0]},
+    {id:"l2",name:"Peso muerto rumano",tipo:"Compuesto",reps:"8–10",rirs:[3,2,1,0]},
+    {id:"l3",name:"Zancada búlgara",tipo:"Compuesto",reps:"10–12 / pierna",rirs:[3,2,0]},
+    {id:"l4",name:"Curl femoral en máquina",tipo:"Aislado",reps:"12–15",rirs:[2,1,0]},
+    {id:"l5",name:"Patada de glúteo en polea",tipo:"Aislado",reps:"12–15",rirs:[2,1,0]},
+    {id:"l6",name:"Abducción de cadera en máquina",tipo:"Aislado",reps:"15–20",rirs:[2,1,0]}
+  ],cardio:{desc:"Bici o escaladora, intensidad moderada",min:"15–20 min"}},
+  {key:"mar",letter:"M",dia:"Martes",grupo:"Espalda y Bíceps",sub:null,exercises:[
+    {id:"m1",name:"Jalón al pecho",tipo:"Compuesto",reps:"10–12",rirs:[3,2,1,1],nota:"No fallo absoluto en polea alta"},
+    {id:"m2",name:"Remo en polea baja",tipo:"Compuesto",reps:"10–12",rirs:[3,2,1,1]},
+    {id:"m3",name:"Remo con mancuerna a un brazo",tipo:"Compuesto",reps:"10–12 / lado",rirs:[2,1,1]},
+    {id:"m4",name:"Face pull",tipo:"Aislado",reps:"15",rirs:[2,1,1]},
+    {id:"m5",name:"Curl con barra",tipo:"Aislado",reps:"10–12",rirs:[2,1,0]},
+    {id:"m6",name:"Curl martillo",tipo:"Aislado",reps:"12",rirs:[2,1,0]}
+  ],cardio:{desc:"Cardio libre, intensidad moderada",min:"15–20 min"}},
+  {key:"mie",letter:"M",dia:"Miércoles",grupo:"Cuádriceps y Pantorrilla",sub:null,exercises:[
+    {id:"w1",name:"Sentadilla libre",tipo:"Compuesto",reps:"8–10",rirs:[3,2,1,1],nota:"Fallo técnico, no absoluto — seguridad de columna"},
+    {id:"w2",name:"Prensa de piernas",tipo:"Compuesto",reps:"10–12",rirs:[3,2,1,0]},
+    {id:"w3",name:"Extensión de cuádriceps",tipo:"Aislado",reps:"12–15",rirs:[2,1,0]},
+    {id:"w4",name:"Zancada caminando con mancuernas",tipo:"Compuesto",reps:"12 / pierna",rirs:[2,1,1]},
+    {id:"w5",name:"Elevación de talones de pie",tipo:"Aislado",reps:"15–20",rirs:[2,1,1,0]}
+  ],cardio:{desc:"Cardio libre, intensidad moderada",min:"15–20 min"}},
+  {key:"jue",letter:"J",dia:"Jueves",grupo:"Pecho, Hombro y Tríceps",sub:null,exercises:[
+    {id:"j1",name:"Press banca con mancuernas",tipo:"Compuesto",reps:"10–12",rirs:[3,2,1,1],nota:"Sin spotter — no fallo absoluto"},
+    {id:"j2",name:"Press militar con mancuernas",tipo:"Compuesto",reps:"10–12",rirs:[2,1,1]},
+    {id:"j3",name:"Aperturas en polea o máquina",tipo:"Aislado",reps:"12–15",rirs:[2,1,0]},
+    {id:"j4",name:"Elevación lateral",tipo:"Aislado",reps:"15",rirs:[2,1,0]},
+    {id:"j5",name:"Extensión de tríceps en polea",tipo:"Aislado",reps:"12–15",rirs:[2,1,0]},
+    {id:"j6",name:"Fondos en banco",tipo:"Compuesto",reps:"10–12",rirs:[2,1,0]}
+  ],cardio:{desc:"Cardio libre, intensidad moderada",min:"15–20 min"}},
+  {key:"vie",letter:"V",dia:"Viernes",grupo:"Glúteo y Abdomen",sub:"Segundo estímulo de glúteo",exercises:[
+    {id:"v1",name:"Sentadilla sumo con mancuerna",tipo:"Compuesto",reps:"10–12",rirs:[3,2,1,1]},
+    {id:"v2",name:"Hip thrust a una pierna",tipo:"Compuesto",reps:"10–12 / lado",rirs:[2,1,0]},
+    {id:"v3",name:"Puente de glúteo con banda",tipo:"Aislado",reps:"15–20",rirs:[2,1,0]},
+    {id:"v4",name:"Patada de burro en polea",tipo:"Aislado",reps:"12–15",rirs:[2,1,0]},
+    {id:"v5",name:"Plancha con toque de hombro",tipo:"Core",reps:"30–45 seg",rirs:[null,null,null]},
+    {id:"v6",name:"Elevación de piernas",tipo:"Core",reps:"15",rirs:[2,1,0]}
+  ],cardio:{desc:"Cierre de semana — un poco más largo",min:"20–25 min"}}
+];
+
+const MEASURE_FIELDS = [
+  {id:"peso",label:"Peso",unit:"kg"},
+  {id:"cintura",label:"Cintura",unit:"cm"},
+  {id:"cadera",label:"Cadera",unit:"cm"},
+  {id:"muslo",label:"Muslo",unit:"cm"},
+  {id:"brazo",label:"Brazo",unit:"cm"},
+  {id:"pecho",label:"Pecho",unit:"cm"}
+];
+
+const RIR_COLORS = {4:"#4A4556",3:"#7A3F63",2:"#B23A6E",1:"#E63469",0:"#F2A93B"};
+const rirColor = r => r===null ? "#6B6478" : RIR_COLORS[r];
+const rirLabel = r => r===null ? "postural" : r===0 ? "fallo" : "RIR"+r;
+const rirTitle = r => r===null ? "Fallo postural" : r===0 ? "Al fallo" : "RIR "+r;
+
+/* ---------- STATE ---------- */
+const STORAGE_KEY = "bitacora-entreno-v1";
+let state = {
+  view: "entreno",
+  activeDay: "lun",
+  completed: {},
+  cardioDone: {},
+  weights: {},
+  measurements: [],
+  confirmReset: false,
+  confirmDeleteId: null,
+  form: emptyForm()
+};
+
+function emptyForm(){
+  const d = new Date();
+  const iso = d.toISOString().slice(0,10);
+  return {date: iso, peso:"", cintura:"", cadera:"", muslo:"", brazo:"", pecho:""};
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const data = JSON.parse(raw);
+      state.completed = data.completed || {};
+      state.cardioDone = data.cardioDone || {};
+      state.weights = data.weights || {};
+      state.measurements = data.measurements || [];
+    }
+  }catch(e){ console.error("No se pudo cargar", e); }
+}
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      completed: state.completed, cardioDone: state.cardioDone,
+      weights: state.weights, measurements: state.measurements
+    }));
+  }catch(e){ console.error("No se pudo guardar", e); }
+}
+
+/* ---------- HELPERS ---------- */
+function dayProgress(day){
+  const totalSets = day.exercises.reduce((a,e)=>a+e.rirs.length,0)+1;
+  let done=0;
+  day.exercises.forEach(e=>{
+    e.rirs.forEach((_,i)=>{ if(state.completed[day.key+"-"+e.id+"-"+i]) done++; });
+  });
+  if(state.cardioDone[day.key]) done++;
+  return Math.round((done/totalSets)*100);
+}
+function weekProgress(){
+  return Math.round(WEEK.reduce((a,d)=>a+dayProgress(d),0)/WEEK.length);
+}
+function fmtDate(iso){
+  return new Date(iso+"T00:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"});
+}
+function esc(s){ return (s===undefined||s===null) ? "" : String(s); }
+
+/* ---------- RENDER ---------- */
+function render(){
+  const app = document.getElementById("app");
+  const wp = weekProgress();
+  let html = `
+  <div class="header">
+    <p class="eyebrow">Bitácora de entrenamiento</p>
+    <h1 class="title">COMPOSICIÓN CORPORAL · 5 DÍAS</h1>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" style="width:${wp}%"></div></div>
+      <span class="progress-pct mono">${wp}%</span>
+    </div>
+  </div>
+  <div class="mainnav">
+    <button data-action="setview" data-view="entreno" class="${state.view==='entreno'?'active':''}">Entrenamiento</button>
+    <button data-action="setview" data-view="medidas" class="${state.view==='medidas'?'active':''}">Medidas</button>
+  </div>`;
+
+  if(state.view === "entreno"){
+    html += renderEntreno();
+  } else {
+    html += renderMedidas();
+  }
+  app.innerHTML = html;
+  if(state.view === "medidas") drawChart();
+}
+
+function renderEntreno(){
+  const day = WEEK.find(d=>d.key===state.activeDay);
+  let html = `<div class="daytabs">`;
+  WEEK.forEach(d=>{
+    const active = d.key===state.activeDay;
+    const prog = dayProgress(d);
+    html += `<button class="daytab ${active?'active':''}" data-action="setday" data-day="${d.key}">
+      <span class="letter">${d.letter}</span>
+      <div class="bar"><div class="bar-fill ${prog===100?'full':''}" style="width:${prog}%"></div></div>
+    </button>`;
+  });
+  html += `</div><div class="content">`;
+  html += `<div class="daymeta">
+    <p class="eyebrow2">${day.dia}</p>
+    <h2>${day.grupo}</h2>
+    ${day.sub ? `<p class="sub">${day.sub}</p>` : ""}
+  </div>`;
+
+  day.exercises.forEach(ex=>{
+    const badgeClass = ex.tipo==="Compuesto"?"compuesto":ex.tipo==="Core"?"core":"aislado";
+    const wkey = day.key+"-"+ex.id;
+    html += `<div class="card">
+      <div class="ex-top">
+        <div>
+          <span class="badge ${badgeClass}">${ex.tipo}</span>
+          <p class="ex-name">${ex.name}</p>
+          <p class="ex-reps mono">${ex.reps} reps</p>
+        </div>
+        <input class="kg-input mono" type="text" placeholder="kg" value="${esc(state.weights[wkey])}" data-action="setweight" data-day="${day.key}" data-ex="${ex.id}" />
+      </div>
+      ${ex.nota ? `<p class="note">⚠ ${ex.nota}</p>` : ""}
+      <div class="sets">`;
+    ex.rirs.forEach((rir,i)=>{
+      const key = day.key+"-"+ex.id+"-"+i;
+      const done = !!state.completed[key];
+      const color = rirColor(rir);
+      html += `<button class="setbtn" title="${rirTitle(rir)}" data-action="toggleset" data-day="${day.key}" data-ex="${ex.id}" data-idx="${i}"
+        style="border:2px solid ${color}; background:${done?color:'transparent'}; color:${done?'#15131A':'#F7F3EE'}">
+        <span class="n mono">${i+1}</span><span class="r">${rirLabel(rir)}</span>
+      </button>`;
+    });
+    html += `</div></div>`;
+  });
+
+  const cdone = !!state.cardioDone[day.key];
+  html += `<button class="cardio-btn ${cdone?'done':''}" data-action="togglecardio" data-day="${day.key}">
+    <div>
+      <span class="cardio-label">Cardio final</span>
+      <p class="cardio-desc">${day.cardio.desc}</p>
+      <p class="cardio-min mono">${day.cardio.min}</p>
+    </div>
+    <div class="cardio-dot ${cdone?'done':''}"></div>
+  </button>`;
+
+  html += `<div class="legend">
+    <p class="lbl mono">Escala RIR</p>
+    <div class="legend-items">
+      ${[3,2,1,0].map(r=>`<div class="legend-item"><div class="dot" style="background:${rirColor(r)}"></div><span>${rirTitle(r)}</span></div>`).join("")}
+    </div>
+  </div>`;
+
+  html += `<div class="center">`;
+  if(!state.confirmReset){
+    html += `<button class="reset-link" data-action="askreset">Reiniciar progreso de la semana</button>`;
+  } else {
+    html += `<div class="reset-confirm">
+      <span style="font-size:12px;color:var(--text)">¿Seguro? Se borran las series marcadas.</span>
+      <button class="btn-danger" data-action="doreset">Sí, reiniciar</button>
+      <button class="btn-ghost" data-action="cancelreset">Cancelar</button>
+    </div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderMedidas(){
+  const f = state.form;
+  let html = `<div class="content">
+    <div class="daymeta" style="margin-top:10px">
+      <p class="eyebrow2">Seguimiento</p>
+      <h2>Medidas corporales</h2>
+      <p class="sub">Registra tu progreso por fecha</p>
+    </div>
+
+    <div class="form-card">
+      <label class="form-label">Fecha</label>
+      <input class="date-input" type="date" value="${esc(f.date)}" data-action="setform" data-field="date" />
+      <div class="field-grid">`;
+  MEASURE_FIELDS.forEach(mf=>{
+    html += `<div class="field">
+      <label>${mf.label} <span style="color:var(--muted2)">(${mf.unit})</span></label>
+      <input type="number" inputmode="decimal" placeholder="—" value="${esc(f[mf.id])}" data-action="setform" data-field="${mf.id}" />
+    </div>`;
+  });
+  html += `</div>
+      <button class="save-btn" data-action="savemeasure">Guardar medida</button>
+    </div>
+
+    <div class="chart-card">
+      <p class="eyebrow2" style="margin-bottom:4px">Tendencia</p>
+      <h3>Peso · Cintura · Cadera</h3>
+      <div id="chart-holder"></div>
+    </div>`;
+
+  const sorted = [...state.measurements].sort((a,b)=>b.date.localeCompare(a.date));
+  html += `<p class="hist-lbl">Historial ${sorted.length>0?`(${sorted.length})`:""}</p>`;
+  if(sorted.length===0){
+    html += `<p class="hist-empty">Aún no hay medidas registradas. Agrega la primera arriba.</p>`;
+  }
+  sorted.forEach((m,idx)=>{
+    const prev = sorted[idx+1];
+    html += `<div class="hist-card">
+      <div class="hist-top">
+        <span class="hist-date">${fmtDate(m.date)}</span>`;
+    if(state.confirmDeleteId===m.id){
+      html += `<div style="display:flex;gap:6px">
+        <button class="btn-danger" data-action="dodelete" data-id="${m.id}">Borrar</button>
+        <button class="btn-ghost" data-action="canceldelete">Cancelar</button>
+      </div>`;
+    } else {
+      html += `<button class="hist-del" data-action="askdelete" data-id="${m.id}">Eliminar</button>`;
+    }
+    html += `</div><div class="hist-grid">`;
+    MEASURE_FIELDS.forEach(mf=>{
+      const val = m[mf.id];
+      if(val===""||val===undefined) return;
+      const prevVal = prev && prev[mf.id]!=="" ? parseFloat(prev[mf.id]) : null;
+      const delta = prevVal!==null ? (parseFloat(val)-prevVal).toFixed(1) : null;
+      html += `<div class="hist-field">
+        <p class="flbl">${mf.label}</p>
+        <p class="fval">${val}<span class="funit"> ${mf.unit}</span></p>`;
+      if(delta!==null && delta!=="0.0"){
+        const down = delta.startsWith("-");
+        html += `<p class="fdelta" style="color:${down?'var(--green)':'var(--pink)'}">${down?'▼':'▲'} ${delta.replace('-','')}</p>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+/* ---------- CHART (hand-drawn SVG, no external libs) ---------- */
+function drawChart(){
+  const holder = document.getElementById("chart-holder");
+  if(!holder) return;
+  const data = [...state.measurements]
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .map(m=>({
+      date: m.date,
+      label: fmtDate(m.date).replace(/de \d{4}/,'').trim(),
+      peso: m.peso!=="" ? parseFloat(m.peso) : null,
+      cintura: m.cintura!=="" ? parseFloat(m.cintura) : null,
+      cadera: m.cadera!=="" ? parseFloat(m.cadera) : null
+    }));
+  const pts = data.filter(d=>d.peso!==null||d.cintura!==null||d.cadera!==null);
+  if(pts.length < 2){
+    holder.innerHTML = `<p class="chart-empty">Agrega al menos 2 medidas con peso, cintura o cadera para ver la gráfica.</p>`;
+    return;
+  }
+
+  const W=300,H=180,padL=32,padR=10,padT=10,padB=24;
+  const innerW = W-padL-padR, innerH = H-padT-padB;
+
+  function scale(key){
+    const vals = pts.map(d=>d[key]).filter(v=>v!==null);
+    if(vals.length===0) return null;
+    let min=Math.min(...vals), max=Math.max(...vals);
+    if(min===max){ min-=1; max+=1; }
+    const pad=(max-min)*0.15;
+    return {min:min-pad, max:max+pad};
+  }
+  const kgScale = scale("peso");
+  const cmScale = scale("cintura") || scale("cadera");
+
+  function xPos(i){ return padL + (pts.length===1?0:(i/(pts.length-1))*innerW); }
+  function yPos(val, sc){ return padT + innerH - ((val-sc.min)/(sc.max-sc.min))*innerH; }
+
+  function pathFor(key, sc, color){
+    if(!sc) return "";
+    let d="", started=false;
+    pts.forEach((p,i)=>{
+      if(p[key]===null) return;
+      const x=xPos(i), y=yPos(p[key],sc);
+      d += (started?"L":"M")+x.toFixed(1)+","+y.toFixed(1)+" ";
+      started=true;
+    });
+    return d;
+  }
+  function dotsFor(key, sc, color){
+    if(!sc) return "";
+    let s="";
+    pts.forEach((p,i)=>{
+      if(p[key]===null) return;
+      const x=xPos(i), y=yPos(p[key],sc);
+      s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${color}"/>`;
+    });
+    return s;
+  }
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:220px;overflow:visible">`;
+  // grid lines
+  for(let i=0;i<=3;i++){
+    const y = padT + (innerH/3)*i;
+    svg += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#2A2732" stroke-width="1" stroke-dasharray="3,3"/>`;
+  }
+  // x labels (first, middle, last)
+  [0, Math.floor((pts.length-1)/2), pts.length-1].forEach(i=>{
+    if(i<0) return;
+    const x = xPos(i);
+    svg += `<text x="${x}" y="${H-6}" font-size="7" fill="#6B6478" text-anchor="middle" font-family="IBM Plex Mono, monospace">${pts[i].label}</text>`;
+  });
+
+  if(cmScale){
+    svg += `<path d="${pathFor('cintura',cmScale)}" fill="none" stroke="#E63469" stroke-width="2"/>`;
+    svg += dotsFor('cintura',cmScale,'#E63469');
+    svg += `<path d="${pathFor('cadera',cmScale)}" fill="none" stroke="#9C7BD6" stroke-width="2"/>`;
+    svg += dotsFor('cadera',cmScale,'#9C7BD6');
+  }
+  if(kgScale){
+    svg += `<path d="${pathFor('peso',kgScale)}" fill="none" stroke="#F2A93B" stroke-width="2"/>`;
+    svg += dotsFor('peso',kgScale,'#F2A93B');
+  }
+  svg += `</svg>`;
+
+  svg += `<div class="chart-legend">
+    <div class="legend-item"><div class="dot" style="background:#F2A93B"></div>Peso (kg)</div>
+    <div class="legend-item"><div class="dot" style="background:#E63469"></div>Cintura (cm)</div>
+    <div class="legend-item"><div class="dot" style="background:#9C7BD6"></div>Cadera (cm)</div>
+  </div>`;
+
+  holder.innerHTML = svg;
+}
+
+/* ---------- EVENTS ---------- */
+document.addEventListener("click", e=>{
+  const el = e.target.closest("[data-action]");
+  if(!el) return;
+  const a = el.dataset.action;
+  if(a==="setview"){ state.view = el.dataset.view; state.confirmReset=false; state.confirmDeleteId=null; render(); }
+  else if(a==="setday"){ state.activeDay = el.dataset.day; render(); }
+  else if(a==="toggleset"){
+    const key = el.dataset.day+"-"+el.dataset.ex+"-"+el.dataset.idx;
+    state.completed[key] = !state.completed[key];
+    save(); render();
+  }
+  else if(a==="togglecardio"){
+    const d = el.dataset.day;
+    state.cardioDone[d] = !state.cardioDone[d];
+    save(); render();
+  }
+  else if(a==="askreset"){ state.confirmReset = true; render(); }
+  else if(a==="cancelreset"){ state.confirmReset = false; render(); }
+  else if(a==="doreset"){
+    state.completed = {}; state.cardioDone = {}; state.confirmReset = false;
+    save(); render();
+  }
+  else if(a==="savemeasure"){
+    const f = state.form;
+    if(!f.date) return;
+    const hasValue = MEASURE_FIELDS.some(mf=>f[mf.id]!=="");
+    if(!hasValue) return;
+    const entry = Object.assign({id: f.date+"-"+Date.now()}, f);
+    state.measurements.push(entry);
+    state.form = emptyForm();
+    save(); render();
+  }
+  else if(a==="askdelete"){ state.confirmDeleteId = el.dataset.id; render(); }
+  else if(a==="canceldelete"){ state.confirmDeleteId = null; render(); }
+  else if(a==="dodelete"){
+    state.measurements = state.measurements.filter(m=>m.id!==el.dataset.id);
+    state.confirmDeleteId = null;
+    save(); render();
+  }
+});
+
+document.addEventListener("input", e=>{
+  const el = e.target.closest("[data-action]");
+  if(!el) return;
+  const a = el.dataset.action;
+  if(a==="setweight"){
+    const key = el.dataset.day+"-"+el.dataset.ex;
+    state.weights[key] = el.value;
+    save();
+  }
+  else if(a==="setform"){
+    state.form[el.dataset.field] = el.value;
+  }
+});
+
+/* ---------- INIT ---------- */
+load();
+render();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("service-worker.js").catch(err=>console.error("SW error", err));
+  });
+}
+</script>
+</body>
+</html>
